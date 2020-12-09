@@ -1,0 +1,99 @@
+const config = require("../config");
+const Discord = require("discord.js");
+const db = require("quick.db")
+
+module.exports = class {
+
+    constructor (client) {
+        this.client = client;
+    }
+
+    async run (guild, user) {
+        if(!guild.me.hasPermission("VIEW_AUDIT_LOG")) return;
+        const data = { color: this.client.config.color, footer: this.client.config.footer };
+        let guildData = await this.client.findOrCreateGuild({ id: guild.id });
+        data.guild = guildData;
+        let language = require("../languages/"+data.guild.language);
+        const moment = require("moment-timezone");
+        const time = moment.tz(Date.now(), "Europe/Paris").format("HH:mm:ss");
+     
+        const userremove = await guild
+        .fetchAuditLogs({ type: "MEMBER_BAN_ADD" })
+        .then(audit => audit.entries.first().executor.tag);
+        let log = db.fetch(`logs_${guild.id}`, { target: '.logsid' })
+        let Channelogs = guild.channels.cache.find(x => x.id === log);
+        if(Channelogs) {
+        Channelogs.send(`\`[${time}]\` `+language.guildbanadd(guild, user, userremove))
+        }
+        
+        let mode = db.fetch(`antiraidmaster_${guild.id}`);
+        if (mode === null) mode = "off"
+        const useraction = await guild
+        .fetchAuditLogs({ type: "MEMBER_BAN_ADD" })
+        .then(audit => audit.entries.first().executor);
+       
+        if(mode === "on") {
+            if(useraction.bot) return;
+            
+            if(data.guild.blacklistedUsers.includes(useraction.id)) {
+////////////////////////////////////////////////////////////////////
+            } else {
+                let memberData = await this.client.findOrCreateGuildMember({ id: useraction.id, guildID: guild.id, bot: useraction.bot });
+                let isInCooldown = (memberData.cooldownsban || { ban: 0 }).ban;
+                if(isInCooldown){
+                    if(isInCooldown > Date.now()){
+                    let membre = await guild.members.cache.get(useraction.id)
+                    let roles = [];
+        
+                    membre.roles.cache.forEach((s) => {    
+        
+                        roles.push(s.id);
+                    })
+                    membre.roles.remove(roles, "Protection - Trop de bans").catch(err => {
+                        
+                    })
+                    guild.members.unban(user)
+                    let log = db.fetch(`raidlogs_${guild.id}`, { target: '.logsid' })
+                    let Channelogs = guild.channels.cache.find(x => x.id === log);
+    
+                    if(Channelogs) {
+                    Channelogs.send(`**${useraction.tag}** a ban trop de membres en peu de temps ! J'ai unban **${user.username}** et j'ai derank **${useraction.tag}**`)
+                    }
+                    }
+                }
+                let toWait = Date.now() + 30000;
+                memberData.cooldownsban = {};
+                memberData.cooldownsban.ban = toWait;
+                memberData.markModified("cooldownsban");
+                memberData.save();
+                
+        }
+        }else{
+            if(useraction.bot) return;
+            
+            if(data.guild.blacklistedUsers.includes(useraction.id)) {
+                ////////////////////////////////////////////////////////////////////
+            } else {
+
+                let memberData = await this.client.findOrCreateGuildMember({ id: useraction.id, guildID: guild.id, bot: useraction.bot });
+                let isInCooldown = (memberData.ban || { ban: 0 }).ban;
+                if(isInCooldown){
+                    if(isInCooldown > Date.now()){
+                    let log = db.fetch(`raidlogs_${guild.id}`, { target: '.logsid' })
+                    let Channelogs = guild.channels.cache.find(x => x.id === log);
+    
+                    if(Channelogs) {
+                    Channelogs.send(`**${useraction.tag}** a ban trop de membres en peu de temps ! Je n'ai rien fait car l'anti raid est **off**!`)
+                }
+                    }
+                }
+                let toWait = Date.now() + 30000;
+                memberData.cooldownsban = {};
+                memberData.cooldownsban.ban = toWait;
+                memberData.markModified("cooldownsban");
+                memberData.save();
+        }
+        }
+      }
+
+};

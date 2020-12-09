@@ -1,0 +1,119 @@
+const config = require("../config");
+const Discord = require("discord.js");
+const db = require("quick.db")
+
+module.exports = class {
+
+    constructor (client) {
+        this.client = client;
+    }
+
+    async run (member, role) {
+        if(!member.guild.me.hasPermission("VIEW_AUDIT_LOG")) return;
+        const data = { color: this.client.config.color, footer: this.client.config.footer };
+        let guildData = await this.client.findOrCreateGuild({ id: member.guild.id });
+        data.guild = guildData;
+        let language = require("../languages/"+data.guild.language);
+     
+        const userremove = await member.guild
+        .fetchAuditLogs({ type: "MEMBER_ROLE_UPDATE" })
+        .then(audit => audit.entries.first().executor.tag);
+        const moment = require("moment-timezone");
+        const time = moment.tz(Date.now(), "Europe/Paris").format("HH:mm:ss");
+        let log = db.fetch(`serverlogs_${member.guild.id}`, { target: '.logsid' })
+        let Channelogs = member.guild.channels.cache.find(x => x.id === log);
+        if(Channelogs) {
+      
+        Channelogs.send(`\`[${time}]\` `+language.guildmemberroleadd(member, role, userremove))
+        }
+
+        const useraction = await member.guild.fetchAuditLogs({ type: "MEMBER_ROLE_UPDATE" }).then(audit => audit.entries.first().executor);
+        let mode = db.fetch(`antiraidmaster_${member.guild.id}`);
+        if (mode === null) mode = "off"
+
+        if(mode === "on") {
+            if(useraction.bot) return;
+            db.set(`roleup_${useraction.id}`, { guildid: member.guild.id, nombre: 0});
+            
+            if(data.guild.blacklistedUsers.includes(useraction.id)) {
+    
+            } else {
+                let rol = member.guild.roles.cache.get(role.id)
+            let perms = rol.permissions
+            if(perms.has("KICK_MEMBERS") || perms.has("BAN_MEMBERS") || perms.has("ADMINISTRATOR") || perms.has("MANAGE_CHANNELS") || perms.has("MANAGE_GUILD") || perms.has("MENTION_EVERYONE") || perms.has("MANAGE_ROLES")) {
+            
+                let number = db.fetch(`roleup_${useraction.id}`, { target: '.nombre' })
+    
+                if(number == null) {db.set(`roleup_${useraction.id}`, { guildid: member.guild.id, nombre: 0});}
+        
+                let number1 = db.fetch(`roleup_${useraction.id}`, { target: '.nombre' })
+        
+                db.set(`roleup_${useraction.id}`, { guildid: member.guild.id, nombre: number1+1});
+        
+                let number2 = db.fetch(`roleup_${useraction.id}`, { target: '.nombre' })
+        
+                if(number2 == 1) {
+                    let membre = await member.guild.members.cache.get(useraction.id)
+                    let roles = [];
+        
+                    membre.roles.cache.forEach((s) => {    
+        
+                        roles.push(s.id);
+                    })
+                    membre.roles.remove(roles, "Protection - Permission donnée").catch(err => {
+                        
+                    })
+                    member.roles.remove(role.id, "Protection - Permission donnée")
+                    let log = db.fetch(`raidlogs_${member.guild.id}`, { target: '.logsid' })
+                    let Channelogs = member.guild.channels.cache.find(x => x.id === log);
+    
+                    if(Channelogs) {
+                    Channelogs.send(`**${useraction.tag}** donner un rôle qui contenait une grosse permission à **${member.user.tag}** ! J'ai enlever le rôle à **${member.user.username}** et j'ai derank **${useraction.tag}**`).then(async () => {
+                    })
+                }
+                    db.set(`roleup_${useraction.id}`, { guildid: member.guild.id, nombre: 0});
+                }
+            }
+    
+        }
+        }else{
+
+
+
+            if(useraction.bot) return;
+            db.set(`roleup_${useraction.id}`, { guildid: member.guild.id, nombre: 0});
+            let rol = member.guild.roles.cache.get(role.id)
+        let perms = rol.permissions
+            if(perms.has("KICK_MEMBERS") || perms.has("BAN_MEMBERS") || perms.has("ADMINISTRATOR") || perms.has("MANAGE_CHANNELS") || perms.has("MANAGE_GUILD") || perms.has("MENTION_EVERYONE") || perms.has("MANAGE_ROLES")) {
+            
+            if(data.guild.blacklistedUsers.includes(useraction.id)) {
+    
+            } else {
+    
+            let number = db.fetch(`roleup_${useraction.id}`, { target: '.nombre' })
+    
+            if(number == null) {db.set(`roleup_${useraction.id}`, { guildid: member.guild.id, nombre: 0});}
+    
+            let number1 = db.fetch(`roleup_${useraction.id}`, { target: '.nombre' })
+    
+            db.set(`roleup_${useraction.id}`, { guildid: member.guild.id, nombre: number1+1});
+    
+            let number2 = db.fetch(`roleup_${useraction.id}`, { target: '.nombre' })
+    
+            if(number2 == 1) {
+               
+                let log = db.fetch(`raidlogs_${member.guild.id}`, { target: '.logsid' })
+                let Channelogs = member.guild.channels.cache.find(x => x.id === log);
+
+                if(Channelogs) {
+                Channelogs.send(`**${useraction.tag}** donner un rôle qui contenait une grosse permission à **${member.user.tag}** ! Je n'ai rien fait car l'anti raid est **off** !`).then(async () => {
+                })
+            }
+                db.set(`roleup_${useraction.id}`, { guildid: member.guild.id, nombre: 0});
+            }
+        }
+    }
+        }
+    }
+
+};
