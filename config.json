@@ -1,8 +1,6 @@
 {
    "owners": [
-      "254655042500558848",
-      "770337582818263062",
-      "749546471652851772"
+      "Ton id"
    ],
    "database": {
       "db": "test",
@@ -11,5 +9,5 @@
       "user": "root"
    },
    "prefix": "+",
-   "token": "met ton token"
+   "token": "TON TOKEN"
 }

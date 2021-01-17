@@ -7,6 +7,10 @@ module.exports = async (Sequelize, volt) => {
                 type: Sequelize.STRING(100),
                 allowNull: false,
             },
+            enabled: {
+                type: Sequelize.BOOLEAN,
+                defaultValue: true
+            },
             detect: {
                 type: Sequelize.INTEGER,
                 allowNull: true,
@@ -19,7 +23,7 @@ module.exports = async (Sequelize, volt) => {
             },
             sanctions: {
                 type: Sequelize.TEXT,
-                defaultValue: "unrank"
+                defaultValue: 'unrank'
             },
             time: {
                 type: Sequelize.INTEGER,

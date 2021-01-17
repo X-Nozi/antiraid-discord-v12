@@ -18,6 +18,10 @@ module.exports = async (Sequelize, volt) => {
                 type: Sequelize.STRING(2),
                 defaultValue: "fr"
             },
+            antibot: {
+                type: Sequelize.BOOLEAN(),
+                defaultValue: true
+            },
             channelCreate: {
                 type: Sequelize.BOOLEAN(),
                 defaultValue: true
@@ -31,6 +35,10 @@ module.exports = async (Sequelize, volt) => {
                 defaultValue: true
             },
             guildBanAdd: {
+                type: Sequelize.BOOLEAN(),
+                defaultValue: true
+            },
+            guildKickAdd: {
                 type: Sequelize.BOOLEAN(),
                 defaultValue: true
             },

@@ -65,29 +65,27 @@ module.exports = class {
                 }
             })
 
-            if (userAlerts.length >= after.max) {
-                const TimeAgo = (date, s) => {
-                    const hourago = Date.now() - s;
 
-                    return date >= hourago;
-                }
+            if (userAlerts.length >= 1) {
 
-                if (TimeAgo(userAlerts.pop().makedAt, after.time)) {
-                    if (after.sanctions === 'ban') {
-                        action.target.guild.member(action.executor.id).ban({
-                            reason: `Protection - Type: ${this.name} | Alertes: ${userAlerts}`
-                        })
-                    } else if (after.sanctions === 'kick') {
-                        action.target.guild.member(action.executor.id).kick({
-                            reason: `Protection - Type: ${this.name} | Alertes: ${userAlerts}`
-                        })
-                    } else if (after.sanctions === 'unrank') {
-                        let roles = []
-                        client.asyncForEach(action.target.guild.member(action.executor.id).roles.cache.array(), (r, i) => {
-                            roles.push(r.id)
-                        })
+                if (userAlerts.length >= after.max) {
+                    const TimeAgo = (date, s) => {
+                        const hourago = Date.now() - s;
 
-                        action.target.guild.members.cache.get(action.executor.id).roles.remove(roles, `Protection - Type: ${this.name} | Alertes: ${userAlerts}`)
+                        return date >= hourago;
+                    }
+
+                    if (TimeAgo(userAlerts.pop().makedAt, after.time)) {
+                        if (after.sanctions === 'ban') {
+                            action.target.guild.member(action.executor.id).ban({
+                                reason: `Protection - Type: ${this.name} | Alerts: ${userAlerts.filter(x => TimeAgo(x.makedAt, after.time)).length}`
+                            })
+                        } else if (after.sanctions === 'kick') {
+                            action.target.guild.member(action.executor.id).kick(`Protection - Type: ${this.name} | Alerts: ${userAlerts.filter(x => TimeAgo(x.makedAt, after.time)).length}`)
+
+                        } else if (after.sanctions === 'unrank') {
+                            action.target.guild.members.cache.get(action.executor.id).roles.remove(action.target.guild.members.cache.get(action.executor.id).roles.cache.array(), `Protection - Type: ${this.name} | Alerts: ${userAlerts.filter(x => TimeAgo(x.makedAt, after.time)).length}`)
+                        }
                     }
                 }
             }

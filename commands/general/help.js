@@ -20,7 +20,7 @@ module.exports = {
             embed.addField(message.translate.general.help.command.description, `${message.translate[command.class][command.name].description}`)
             embed.addField(message.translate.general.help.command.usage, `\`${data.prefix}${command.name} ${message.translate[command.class][command.name].usage}\``)
             embed.addField(message.translate.general.help.command.example, `\`${data.prefix}${command.name} ${message.translate[command.class][command.name].example}\``)
-            embed.addField(message.translate.general.help.command.permission, `${command.userPermissions.length >= 1 ? `${command.userPermissions.map(p => "``" + message.translate.formatPermission(p) + "``").join(' ')}` : ":x:"}`)
+            embed.addField(message.translate.general.help.command.permission, `${command.userPermissions.length >= 1 ? `${command.userPermissions.map(p => "``" + message.translate.formatPermission(p) + "``").join(', ')}` : ":x:"}`)
 
             return message.channel.send(embed)
         }

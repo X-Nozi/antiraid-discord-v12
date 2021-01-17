@@ -1,4 +1,5 @@
 const { Client, Collection } = require('discord.js');
+const { GiveawaysManager } = require("discord-giveaways");
 const fs = require('fs');
 const readdir = require("util").promisify(fs.readdir);
 const chalk = require('chalk');
@@ -74,7 +75,8 @@ module.exports = class DiscordProtect extends Client {
                 const event = new (require(`../events/${file}`))(this);
                 this.events.set(event.name, {
                     name: event.name,
-                    detectionMS: "100"
+                    detectionMS: "100",
+                    filename: file.split('.').shift()
                 })
 
                 console.log(chalk.yellow(`» ${chalk.underline("Event loaded !")} ${chalk.bold(file)}.`));

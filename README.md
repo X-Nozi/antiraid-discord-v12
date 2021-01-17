@@ -1,1 +1,2 @@
-si besoin d'aide me mp ! " X-Nozi#0777
+# DiscordProtector
+A bot to protect your discord server against raids

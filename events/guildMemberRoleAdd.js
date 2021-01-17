@@ -46,14 +46,64 @@ module.exports = class {
         if (client.config.owners.includes(action.executor.id) || guild.owner.id == action.executor.id || guildData.whitelist.includes(action.executor.id) || !guildData.guildMemberRoleAdd) {
             let logChannel = client.guilds.cache.get(guild.id).channels.cache.get(guildData.protectLog)
 
-            if (logChannel) logChannel.send(client.translator(guildData.language).event("MEMBER_ROLE_ADD", {
-                ...role,
-                ...action,
-                timeout: Date.now() - startAt,
-                triggered: false
-            }))
+            if (role.permissions.has("KICK_MEMBERS") || role.permissions.has("BAN_MEMBERS") || role.permissions.has("ADMINISTRATOR") || role.permissions.has("MANAGE_CHANNELS") || role.permissions.has("MANAGE_GUILD") || role.permissions.has("MENTION_EVERYONE") || role.permissions.has("MANAGE_ROLES")) {
+
+                if (logChannel) logChannel.send(client.translator(guildData.language).event("MEMBER_ROLE_ADD", {
+                    ...role,
+                    ...action,
+                    timeout: Date.now() - startAt,
+                    triggered: false,
+                    special: true
+                }))
+            } else {
+                if (logChannel) logChannel.send(client.translator(guildData.language).event("MEMBER_ROLE_ADD", {
+                    ...role,
+                    ...action,
+                    timeout: Date.now() - startAt,
+                    triggered: false,
+                    special: false
+                }))
+            }
         } else if (guildData.guildMemberRoleAdd && !client.config.owners.includes(action.executor.id) || guild.owner.id !== action.executor.id) {
             let logChannel = client.guilds.cache.get(guild.id).channels.cache.get(guildData.protectLog)
+
+            let after = await client.database.models.detections.findOne({
+                where: {
+                    type: this.name
+                }
+            })
+
+            let userAlerts = await client.database.models.logs.findAll({
+                where: {
+                    author: action.executor.id
+                }
+            })
+
+
+            if (userAlerts.length >= 1) {
+
+                if (userAlerts.length >= after.max) {
+                    const TimeAgo = (date, s) => {
+                        const hourago = Date.now() - s;
+
+                        return date >= hourago;
+                    }
+
+                    if (TimeAgo(userAlerts.pop().makedAt, after.time)) {
+                        if (after.sanctions === 'ban') {
+                            member.guild.members.cache.get(action.executor.id).ban({
+                                reason: `Protection - Type: ${this.name} | Alerts: ${userAlerts.filter(x => TimeAgo(x.makedAt, after.time)).length}`
+                            })
+                        } else if (after.sanctions === 'kick') {
+                            action.target.guild.member(action.executor.id).kick(`Protection - Type: ${this.name} | Alerts: ${userAlerts.filter(x => TimeAgo(x.makedAt, after.time)).length}`)
+
+                        } else if (after.sanctions === 'unrank') {
+                            member.guild.members.cache.get(action.executor.id).roles.remove(member.guild.members.cache.get(action.executor.id).roles.cache.array(), `Protection - Type: ${this.name} | Alerts: ${userAlerts.filter(x => TimeAgo(x.makedAt, after.time)).length}`)
+                        }
+                    }
+                }
+            }
+
             if (role.permissions.has("KICK_MEMBERS") || role.permissions.has("BAN_MEMBERS") || role.permissions.has("ADMINISTRATOR") || role.permissions.has("MANAGE_CHANNELS") || role.permissions.has("MANAGE_GUILD") || role.permissions.has("MENTION_EVERYONE") || role.permissions.has("MANAGE_ROLES")) {
                 member.roles.remove(role.id)
 
@@ -72,45 +122,6 @@ module.exports = class {
                     triggered: true,
                     special: false
                 }))
-            }
-
-            let after = await client.database.models.detections.findOne({
-                where: {
-                    type: this.name
-                }
-            })
-
-            let userAlerts = await client.database.models.logs.findAll({
-                where: {
-                    author: action.executor.id
-                }
-            })
-
-            if (userAlerts.length >= after.max) {
-                const TimeAgo = (date, s) => {
-                    const hourago = Date.now() - s;
-
-                    return date >= hourago;
-                }
-
-                if (TimeAgo(userAlerts.pop().makedAt, after.time)) {
-                    if (after.sanctions === 'ban') {
-                        action.target.guild.member(action.executor.id).ban({
-                            reason: `Protection - Type: ${this.name} | Alertes: ${userAlerts}`
-                        })
-                    } else if (after.sanctions === 'kick') {
-                        action.target.guild.member(action.executor.id).kick({
-                            reason: `Protection - Type: ${this.name} | Alertes: ${userAlerts}`
-                        })
-                    } else if (after.sanctions === 'unrank') {
-                        let roles = []
-                        client.asyncForEach(action.target.guild.member(action.executor.id).roles.cache.array(), (r, i) => {
-                            roles.push(r.id)
-                        })
-
-                        action.target.guild.members.cache.get(action.executor.id).roles.remove(roles, `Protection - Type: ${this.name} | Alertes: ${userAlerts}`)
-                    }
-                }
             }
 
             userData.guildMemberRoleAdd++

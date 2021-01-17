@@ -3,9 +3,9 @@ const ms = require("ms");
 
 module.exports = {
     name: "gstart",
-    aliases: ["g-start", "gs", "giveaway-start"],
+    aliases: ["g-start", "giveaway-start"],
     cooldown: 2000,
-    ownerOnly: true,
+    ownerOnly: false,
     userPermissions: [],
     botPermissions: ["EMBED_LINKS"],
     async execute(client, message, args, data) {

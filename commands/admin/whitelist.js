@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 
 module.exports = {
     name: "whitelist",
-    aliases: [],
+    aliases: ["wl"],
     cooldown: 2000,
     ownerOnly: true,
     userPermissions: ["ADMINISTRATOR"],

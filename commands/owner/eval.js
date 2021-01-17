@@ -7,7 +7,7 @@ module.exports = {
     ownerOnly: true,
     userPermissions: [],
     botPermissions: [],
-    async execute(client, message, args) {
+    async execute(client, message, args, data) {
         //if (!args[0]) return message.channel.send(message.translate.error(this, "args"))
 
         const content = message.content.split(" ").slice(1).join(" ");

@@ -9,6 +9,10 @@ module.exports = async (Sequelize, volt) => {
                 type: Sequelize.STRING(25),
                 allowNull: false
             },
+            antibot: {
+                type: Sequelize.INTEGER,
+                defaultValue: 0
+            },
             channelCreate: {
                 type: Sequelize.INTEGER,
                 defaultValue: 0
@@ -22,6 +26,10 @@ module.exports = async (Sequelize, volt) => {
                 defaultValue: 0
             },
             guildBanAdd: {
+                type: Sequelize.INTEGER,
+                defaultValue: 0
+            },
+            guildKickAdd: {
                 type: Sequelize.INTEGER,
                 defaultValue: 0
             },
